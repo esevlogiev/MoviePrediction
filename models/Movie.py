@@ -1,7 +1,7 @@
-import os
-import sys
-from sqlalchemy import Column, Integer, String, Float, ARRAY, SMALLINT
-from sqlalchemy_declarative import Base
+from sqlalchemy import Table, Column, Integer, String, Float, ForeignKey, ARRAY, SMALLINT
+from models.Base import Base
+from sqlalchemy.orm import relationship
+from models.Tweet import Tweet
 
 class Movie(Base):
     __tablename__ = 'Movies'
@@ -23,6 +23,16 @@ class Movie(Base):
     cast = Column(ARRAY(String(100), dimensions=1), nullable=False)
     countries = Column(ARRAY(String(50), dimensions=1), nullable=False)
 
+    you_tube_trailer_info = relationship('YouTubeMovieTrailerInfo', foreign_keys=[name,year],
+            primaryjoin='Movie.name == YouTubeMovieTrailerInfo.name and Movie.year == YouTubeMovieTrailerInfo.year')
+
+    tweets = relationship('Tweet', uselist=True, lazy='joined', foreign_keys=[name,year],
+            primaryjoin='Tweet.name == Movie.name and Movie.year == Tweet.year')
+
+    def __repr__(self):
+        return "<User(name='%s', fullname='%d', password='%s')>" % (
+            self.name, self.year, self.genres)
+
     def __init__(self, id, name, year, director, duration, rating,
         users_votes, budget, opening_revenue, total_revenue, motion_picture_rating,
         release_date, genres, studios, cast, countries):
@@ -42,3 +52,4 @@ class Movie(Base):
         self.studios = studios
         self.cast = cast
         self.countries = countries
+

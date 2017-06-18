@@ -1,10 +1,10 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from sqlalchemy_declarative import Base
-from movies import Movie
+from models.Base import Base
+from models.Movie import Movie
 from constants import Constants
-
+print (Constants.sqlalchemy_movie_connection)
 class DBManager:
 	engine = create_engine(Constants.sqlalchemy_movie_connection)
 	Base.metadata.bind = engine
