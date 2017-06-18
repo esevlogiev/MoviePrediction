@@ -11,8 +11,8 @@ movieService = MovieService(Config.youtube_api_key, [
   Config.access_token_secret])
 
 
-updated_movies = [movieService.get_data_for_movie(movie) for movie in DBManager.get_movies()[:3]]
+# updated_movies = [movieService.get_data_for_movie(movie) for movie in DBManager.get_movies()[:3]]
 
-DBManager.session.commit()
-print(updated_movies)
-
+# DBManager.session.commit()
+# print(updated_movies)
+# DBManager.create_all_tables()
