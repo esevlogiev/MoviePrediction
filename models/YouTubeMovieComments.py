@@ -11,9 +11,10 @@ class YouTubeMovieComments(Base):
     totalReplyCount = Column('totalReplyCount', Integer)
     publishData = Column('publishData', String)
 
-    def __init__(self, name, year, text, likeCount, totalReplyCount):
+    def __init__(self, name, year, text, likeCount, totalReplyCount, publishData):
         self.name = name
         self.year = year
         self.text = text
         self.likeCount = likeCount
         self.totalReplyCount = totalReplyCount
+        self.publishData = publishData

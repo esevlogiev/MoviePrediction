@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, desc
 from sqlalchemy.orm import sessionmaker
 
 from models.Base import Base
@@ -37,7 +37,7 @@ class DBManager:
 		DBManager.session.commit()
 
 	def get_movies():
-		return DBManager.session.query(Movie).all()
+		return DBManager.session.query(Movie).order_by(desc(Movie.id)).all()
 
 	def get_movies_by_actor(actor_name):
 		return DBManager.session.query(Movie).filter(Movie.cast.any(actor_name)).all()

@@ -52,7 +52,7 @@ class GetDataFromYouTube:
     results = self.service.search().list(
       **kwargs
     ).execute()
-    if len(results['items']) == 1:
+    if len(results['items']) == 1 and results['items'][0]['id'].get('videoId'):
       return results['items'][0]['id']['videoId']
     return None
 
@@ -78,6 +78,7 @@ class GetDataFromYouTube:
         if comment:
           result_comments.append({
             'text': comment['textOriginal'],
+            'publishedAt': comment['publishedAt'],
             'likeCount': comment['likeCount'],
             'totalReplyCount': item['snippet']['totalReplyCount']
           }) 
@@ -86,13 +87,15 @@ class GetDataFromYouTube:
 
 
 
-  def get_info_for_movie(self, name):
-    name += ' Offical Trailer'
+  def get_info_for_movie(self, name, year, date):
+    name += '({0}) Offical Trailer'.format(year)
     trailer_id = self.search_list_by_keyword(
       part='snippet',
       maxResults=1,
       q=name,
-      type='title'
+      type='title',
+      publishedBefore=date,
+      order='viewCount'
     )
     
     if not trailer_id:
@@ -103,13 +106,17 @@ class GetDataFromYouTube:
       id=trailer_id
     )
 
-    comments = self.get_comment_threads(
-      part="snippet",
-      videoId=trailer_id,
-      textFormat="plainText",
-      maxResults=100,
-      order="relevance"
-    )
-    if video_data and comments:
-      return { 'name': name, 'video_data': video_data, 'comments' : comments}
-    return None
+    try:
+      comments = self.get_comment_threads(
+        part="snippet",
+        videoId=trailer_id,
+        textFormat="plainText",
+        maxResults=100,
+        order="relevance"
+        )
+      if video_data or comments:
+        return { 'name': name, 'video_data': video_data, 'comments' : comments, 'id': trailer_id }
+      return None
+    
+    except:
+      return None 
