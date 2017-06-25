@@ -28,7 +28,7 @@ class RatingFeatures:
 		for genre in genres:
 			if not movies_dict.get(genre):
 				movies_dict[genre] = \
-					np.asarray([m.rating for m in DBManager.get_movies_by_genre(genre)]).mean()
+					np.asarray([m.rating for m in [m for m in self.movies if genre in m.genres]]).mean()
 
 			genres_average.append(movies_dict[genre])
 
@@ -41,7 +41,7 @@ class RatingFeatures:
 		for actor in cast:
 			if not movies_dict.get(actor):
 				movies_dict[actor] = \
-					np.asarray([m.rating for m in DBManager.get_movies_by_actor(actor)]).mean()
+					np.asarray([m.rating for m in [m for m in self.movies if actor in m.cast]]).mean()
 
 			cast_average.append(movies_dict[actor])
 
@@ -75,11 +75,11 @@ class RatingFeatures:
 
 			if not movies_dict.get(director):
 				movies_dict[director] = \
-					np.asarray([m.rating for m in DBManager.get_movies_by_director(director)]).mean()
+					np.asarray([m.rating for m in [m for m in self.movies if m.director == director]]).mean()
 			
 			if not movies_dict.get(mpaa):
 				movies_dict[mpaa] = \
-					np.asarray([m.rating for m in DBManager.get_movies_by_mpaa(mpaa)]).mean()
+					np.asarray([m.rating for m in [m for m in self.movies if m.motion_picture_rating == mpaa]]).mean()
 
 			features.append([movies_dict[director], movies_dict[mpaa],self.genres_average(genres)] + \
 				self.cast_average(main_cast, total_cast_average))
