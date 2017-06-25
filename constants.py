@@ -15,5 +15,6 @@ class Constants:
 		port = Config.postgres_port,
 		database = Config.postgres_database)
 
-	features_count = 5
+	features_count = 8
 	main_cast_count = 5
+	train_rating_data_ratio = 0.7

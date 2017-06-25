@@ -8,7 +8,12 @@ class RatingFeatures:
 		self.movies = movies
 		self.movies_duration = np.asarray([m.duration for m in movies])
 		self.movies_dict = {}
-		
+
+	def average_youtube_likes(self):
+		movies_with_likes = np.asarray([m.you_tube_trailer_info.likeCount for m in self.movies if m.you_tube_trailer_info])
+		movies_with_dislikes = np.asarray([m.you_tube_trailer_info.dislikeCount for m in self.movies if m.you_tube_trailer_info])
+
+		return [movies_with_likes.mean(), movies_with_dislikes.mean()]
 
 	def normalize_duration(self, duration, movies_duration):
 		return (duration - movies_duration.mean()) / movies_duration.std()
@@ -29,7 +34,7 @@ class RatingFeatures:
 
 		return np.asarray(genres_average).mean()
 
-	def cast_average(self, cast):
+	def cast_average(self, cast, totalAverage):
 		movies_dict = self.movies_dict
 		cast_average = []
 
@@ -40,7 +45,7 @@ class RatingFeatures:
 
 			cast_average.append(movies_dict[actor])
 
-		return np.asarray(cast_average).mean()
+		return np.asarray(cast_average).mean() if totalAverage else cast_average
 
 	def get_movies_count(self):
 		return len(self.movies)
@@ -48,9 +53,18 @@ class RatingFeatures:
 	def get_ratings(self):
 		return np.asarray([[m.rating] for m in self.movies])
 
-	def get_features(self):
-		rows_count, columns_count = Constants.features_count, len(self.movies)
-		features = [[0 for x in range(columns_count)] for y in range(rows_count)] 
+	def normalize_all_features(self, features):
+		mean_std_values = [[f.mean(), f.std()] for f in np.asarray(features).transpose()]
+		normalized_features = []
+
+		for feature in features:
+			normalized_features.append([ (feature[i] - mean_std_values[i][0]) / mean_std_values[i][1] \
+				for i in range(0, len(feature)) ])
+
+		return normalized_features
+
+	def get_features(self, to_normalize = False, total_cast_average = False):
+		features = []
 		movies_dict = self.movies_dict
 
 		for movie in self.movies:
@@ -66,10 +80,8 @@ class RatingFeatures:
 			if not movies_dict.get(mpaa):
 				movies_dict[mpaa] = \
 					np.asarray([m.rating for m in DBManager.get_movies_by_mpaa(mpaa)]).mean()
-			
-			for (feature, value) in zip(features, [movies_dict[director], movies_dict[mpaa], 
-				movie.duration, self.genres_average(genres), self.cast_average(main_cast)]):
-				feature.append(value)
 
-		(dir, rat, dur, g, c) = [RatingFeatures.normalize(np.asarray(feature)) for feature in features]
-		return np.asarray([list(f) for f in zip(dir, rat, dur, g, c)])
+			features.append([movies_dict[director], movies_dict[mpaa],self.genres_average(genres)] + \
+				self.cast_average(main_cast, total_cast_average))
+
+		return self.normalize_all_features(features) if to_normalize else features

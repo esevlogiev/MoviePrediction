@@ -1,55 +1,64 @@
 import tensorflow as tf
 import numpy as np
-import math
+from sklearn.preprocessing import StandardScaler
 
-from db_manager import DBManager
-from feature_extraction import RatingFeatures
 from constants import Constants
 
-rating_features = RatingFeatures(DBManager.get_movies())
-movies_count = rating_features.get_movies_count()
-features = rating_features.get_features()
-ratings = rating_features.get_ratings()
+class GDOptimizer:
+    def __init__(self, learning_rate=0.001, num_training_iter=500, features_dim=Constants.features_count):
+        self.learning_rate = learning_rate
+        self.num_training_iter = num_training_iter
+        self.features_dim = features_dim
+        self.W = tf.Variable(tf.random_uniform([Constants.features_count, 1], -1, 1, dtype=np.float32, seed=0),
+            name="weight")
+        self.b = tf.Variable(tf.random_uniform([1], -1, 1, dtype=np.float32, seed=0), name="bias")
+        init = tf.global_variables_initializer()
+        self.sess = tf.Session()
+        self.sess.run(init)
 
+    def train(self, train_features, train_target_values):
+        self.scaler = StandardScaler().fit(train_features)
+        normalized_train_features = self.scaler.transform(train_features)
+        train_samples_count = len(train_features)
 
-train_samples_count = math.floor(movies_count * 0.7)
-train_features = features[:train_samples_count]
-train_ratings = ratings[:train_samples_count]
+        tf_features = tf.placeholder(tf.float32, [train_samples_count, self.features_dim])
+        tf_ratings = tf.placeholder(tf.float32, [train_samples_count, 1])
 
-test_features = features[train_samples_count:]
-test_ratings = ratings[train_samples_count:]
+        tf_rating_pred = tf.add(tf.matmul(tf_features, self.W), self.b)
+        tf_cost = tf.reduce_sum(tf.square(tf_rating_pred - tf_ratings)) / (2*train_samples_count)
 
-tf_features = tf.placeholder(tf.float32, [train_samples_count, Constants.features_count])
-tf_ratings = tf.placeholder(tf.float32, [train_samples_count, 1])
+        optimizer = tf.train.GradientDescentOptimizer(self.learning_rate).minimize(tf_cost)
 
-W = tf.Variable(tf.zeros([1, Constants.features_count], dtype=np.float32), name="weight")
-b = tf.Variable(tf.zeros([1], dtype=np.float32), name="bias")
+        display_every = 2
+        sess = self.sess
 
-tf_rating_pred = tf.add(tf.multiply(tf_features, W), b)
+        for iteration in range(self.num_training_iter):
+            sess.run(optimizer, feed_dict={tf_features: train_features, tf_ratings: train_target_values})
 
+            if (iteration + 1) % display_every == 0:
+                c = sess.run(tf_cost, feed_dict={tf_features: train_features, tf_ratings: train_target_values})
+                print("iteration #: ", '%04d' % (iteration + 1), "cost = ", "{:.9f}".format(c), \
+                    "Weights = ", sess.run(self.W), "bias = ", sess.run(self.b))#,
 
-tf_cost = tf.reduce_sum(tf.pow(tf_rating_pred - tf_ratings, 2)) / (2 * train_samples_count)
+        print("Optimization Finished!")
+        training_cost = sess.run(tf_cost, feed_dict={tf_features: train_features,
+            tf_ratings: train_target_values})
+        print("Training cost =", training_cost, "Weights = ", sess.run(self.W), "bias = ",
+            sess.run(self.b), '\n')
 
-learning_rate = 0.01;
+        return dict([('mse', training_cost)])
 
-optimizer = tf.train.GradientDescentOptimizer(learning_rate).minimize(tf_cost)
+    def predict(self, new_inputs, new_target_values):
+        normalized_new_inputs = self.scaler.transform(new_inputs)
+        predictions = []
+        for (X, y) in zip(new_inputs, new_target_values):
+            predict_X = np.array(X, dtype=np.float32).reshape((1, self.features_dim))
+            predicted_value = tf.add(tf.matmul(predict_X, self.W), self.b)
+            predictions.append([y, self.sess.run(predicted_value)])
+            print('Predicted value: {0}  Real value: {1}'.format(self.sess.run(predicted_value), y))
 
-init = tf.global_variables_initializer()
+        mse = sum([(real_value - pred) ** 2 
+            for [real_value, pred] in predictions]) / (2 * len(predictions))
 
-with tf.Session() as sess:
-    sess.run(init)
-
-    display_every = 2
-    num_training_iter = 1000
-
-    for iteration in range(num_training_iter):
-        sess.run(optimizer, feed_dict={tf_features: train_features, tf_ratings: train_ratings})
-
-        if (iteration + 1) % display_every == 0:
-            c = sess.run(tf_cost, feed_dict={tf_features: train_features, tf_ratings: train_ratings})
-            print("iteration #: ", '%04d' % (iteration + 1), "cost = ", "{:.9f}".format(c), \
-                "Weights = ", sess.run(W), "bias = ", sess.run(b))
-
-    print("Optimization Finished!")
-    training_cost = sess.run(tf_cost, feed_dict={tf_features: train_features, tf_ratings: train_ratings})
-    print("Trained cost=", training_cost, "Weights = ", sess.run(W), "bias = ", sess.run(b), '\n')
+        return dict([ ('mse', mse),
+            ('predictions', predictions)])
