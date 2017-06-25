@@ -54,3 +54,8 @@ class DBManager:
 
 	def get_movies_by_mpaa(mpaa):
 		return DBManager.session.query(Movie).filter(Movie.motion_picture_rating == mpaa).all()
+
+	# def count_twitter_comments():
+	# 	movies = get_movies()
+	# 	for movie in movies:
+	# 		movie.

@@ -53,3 +53,14 @@ class Movie(Base):
         self.cast = cast
         self.countries = countries
 
+    def count_sentiment_tweets(self):
+        positive, negative,neutral = 0, 0, 0
+        tweets_sentiment_count = {
+            'positive': 0,
+            'negative': 0,
+            'neutral': 0
+        }
+        for tweet in self.tweets:
+            tweets_sentiment_count[tweet.sentiment] += 1
+        return tweets_sentiment_count
+

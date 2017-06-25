@@ -10,8 +10,10 @@ from gradient_descent_prediction import GDOptimizer
 from predictions_estimator import PredictionsEstimator
 
 from services.FeedTwitterAndYoutubeData import FeedTwitterAndYoutubeData
+from services.MoneyConverterService import MoneyConverterService
 
 
+<<<<<<< 80f7ff84f2892f8d1b54f2e75e531eddbc6c814f
 def get_data(is_rating=True):
   movies = DBManager.get_movies()
   movies_count = len(movies)
@@ -52,5 +54,15 @@ def main(model_name):
 
   model = models.get(model_name)
   test_predictions(model)
+=======
+from db_manager import DBManager
+
+i = 0
+DBManager.get_movies()
+  # print(len(movie.positive_tweets))
+  # movie.count_sentiment_tweets()
+
+
+>>>>>>> Added MoneyConverter service
 
 main('regression_tree')
