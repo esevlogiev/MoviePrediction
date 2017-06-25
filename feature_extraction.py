@@ -2,6 +2,7 @@ import numpy as np
 
 from db_manager import DBManager
 from constants import Constants
+from services.MoneyConverterService import MoneyConverterService
 
 class RatingFeatures:
 	def __init__(self, movies):
@@ -66,12 +67,32 @@ class RatingFeatures:
 	def get_features(self, to_normalize = False, total_cast_average = False):
 		features = []
 		movies_dict = self.movies_dict
+		rating_features = Constants.rating_features
 
 		for movie in self.movies:
 			director = movie.director
 			mpaa = movie.motion_picture_rating
 			genres = movie.genres
 			main_cast = movie.cast[:Constants.main_cast_count]
+			you_tube_trailer_info = movie.you_tube_trailer_info
+			if you_tube_trailer_info:
+				youtube_likes, youtube_dislikes = \
+					you_tube_trailer_info.likeCount, you_tube_trailer_info.dislikeCount
+			else:
+				youtube_likes, youtube_dislikes = self.average_youtube_likes()
+
+			duration = movie.duration
+			# budget = MoneyConverterService.convert_to_usd(movie.budget, movie.release_date)
+			additional_features = []
+
+			if rating_features.get('youtube'):
+				additional_features += [youtube_likes, youtube_dislikes]
+
+			if rating_features.get('duration'):
+				additional_features.append(duration)
+
+			if rating_features.get('budget'):
+				additional_features.append(budget)
 
 			if not movies_dict.get(director):
 				movies_dict[director] = \
@@ -82,6 +103,7 @@ class RatingFeatures:
 					np.asarray([m.rating for m in [m for m in self.movies if m.motion_picture_rating == mpaa]]).mean()
 
 			features.append([movies_dict[director], movies_dict[mpaa],self.genres_average(genres)] + \
+				additional_features + \
 				self.cast_average(main_cast, total_cast_average))
 
 		return self.normalize_all_features(features) if to_normalize else features

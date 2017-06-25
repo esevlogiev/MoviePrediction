@@ -13,11 +13,11 @@ class MoneyConverterService:
 
   MONEY_REGEX = re.compile('([£$€]|[a-zA-Z]*)\s*([\d,]*)')
 
-  def convert_to_usd(string, money):
-    # matches = re.compile()
+  def convert_to_usd(string, date):
     matches = MoneyConverterService.MONEY_REGEX.match(string)
-    convert_to_date = datetime.strptime(money, '%d %B %Y')
-    print(convert_to_date)
+    convert_to_date = datetime.strptime(date, '%d %B %Y')
+    default_date = datetime.strptime('6 April 2017', '%d %B %Y')
+    convert_to_date = convert_to_date if convert_to_date < default_date else default_date
     
     currency = matches.group(1);
     amount = matches.group(2).replace(',','')

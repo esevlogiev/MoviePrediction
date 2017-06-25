@@ -18,3 +18,9 @@ class Constants:
 	features_count = 8
 	main_cast_count = 5
 	train_rating_data_ratio = 0.7
+
+	rating_features = {
+		'youtube': False,
+		'duration': False,
+		'budget': False
+	}
