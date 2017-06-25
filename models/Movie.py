@@ -23,15 +23,15 @@ class Movie(Base):
     cast = Column(ARRAY(String(100), dimensions=1), nullable=False)
     countries = Column(ARRAY(String(50), dimensions=1), nullable=False)
 
-    # you_tube_trailer_info = relationship('YouTubeMovieTrailerInfo', foreign_keys=[name,year],
-    #         primaryjoin='Movie.name == YouTubeMovieTrailerInfo.name and Movie.year == YouTubeMovieTrailerInfo.year')
+    you_tube_trailer_info = relationship('YouTubeMovieTrailerInfo', foreign_keys=[name,year],
+            primaryjoin='Movie.name == YouTubeMovieTrailerInfo.name and Movie.year == YouTubeMovieTrailerInfo.year')
 
-    # tweets = relationship('Tweet', uselist=True, lazy='joined', foreign_keys=[name,year],
-    #         primaryjoin='Tweet.name == Movie.name and Movie.year == Tweet.year')
+    tweets = relationship('Tweet', uselist=True, lazy='select', foreign_keys=[name,year],
+            primaryjoin='Tweet.name == Movie.name and Movie.year == Tweet.year')
 
-    # def __repr__(self):
-    #     return "<User(name='%s', fullname='%d', password='%s')>" % (
-    #         self.name, self.year, self.genres)
+    def __repr__(self):
+        return "<User(name='%s', fullname='%d', password='%s')>" % (
+            self.name, self.year, self.genres)
 
     def __init__(self, id, name, year, director, duration, rating,
         users_votes, budget, opening_revenue, total_revenue, motion_picture_rating,

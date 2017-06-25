@@ -16,7 +16,7 @@ class YouTubeMovieTrailerInfo(Base):
     url = Column('urlOfMovieTrailer', String)
    
     __table_args__ = (UniqueConstraint('name', 'year', name='name_year_unique'),)
-    you_tube_comments_info = relationship('YouTubeMovieComments', uselist=True, lazy='joined', foreign_keys=[name,year],
+    you_tube_comments_info = relationship('YouTubeMovieComments', uselist=True, lazy='select', foreign_keys=[name,year],
             primaryjoin='YouTubeMovieComments.name == YouTubeMovieTrailerInfo.name and YouTubeMovieComments.year == YouTubeMovieTrailerInfo.year')
 
     def __init__(self, name, year, likeCount, dislikeCount, viewCount, commentCount, urlOfMovieTrailer):
